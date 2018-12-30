@@ -1,7 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-const {ObjectID} = require('mongodb')
-
+const {ObjectID} = require('mongodb');
+const _ = require('lodash');
 
 var {mongoose} = require('./db/mongoose');
 var {Todo} = require('./models/todo');
@@ -24,37 +24,82 @@ app.post('/todos', (req, res) => {
   },(err) => {
     res.status(400).send(err);
     console.log("Error adding note", err);
-  })
+  });
 });
-
-app.get('/todos', (req, res) => {
+app.get('/todos' , (req, res) => {
   Todo.find().then((todos) => {
     res.send({todos});
   }, (e) => {
     res.status(400);
-  })
+  });
 });
 
 app.get('/todos/:id', (req, res) => {
   var id = req.params.id;
   if (ObjectID.isValid(id)){
     Todo.findById(id, (err, query) => {
-      if (err){return res.status(400).send()}
+      if (err){return res.status(400).send();}
       else{
-        if (!query){ return res.status(404).send()}
-        else(res.send(query))
+        if (!query){ return res.status(404).send();}
+        else{res.send(query);}
       }
-    })
+    });
   }else {
     return res.status(404).send();
   }
 },(err) => {
-  res.status(400).send(err)
+  res.status(400).send(err);
   console.log("Could not fetch", err);
-})
+});
+
+app.delete('/todos/:id', (req, res) => {
+    var id = req.params.id;
+
+    if (!ObjectID.isValid(id)) {
+      return res.status(404).send();
+    }
+
+    Todo.findByIdAndDelete(id).then((query) => {
+        if (!query){
+          return res.status(404).send();
+        }
+
+        res.send(query);
+    }).catch((e) => {
+      res.status(400).send();
+  });
+});
+
+app.patch('/todos/:id', (req, res) => {
+  var id = req.params.id;
+  var body = _.pick(req.body, ['text', 'completed']);
+
+  if (!ObjectID.isValid(id)){
+    return req.status(404).send();
+  }
+
+  if (_.isBoolean(body.completed) && body.completed){
+    body.completedAt = new Date().getTime();
+  }
+  else {
+    body.completed = false;
+    body.completedAt = null;
+  }
+
+  Todo.findByIdAndUpdate(id, {$set: body}, {new: true}
+  ).then((query) => {
+    if(!query){
+      return res.status(404).send();
+    }
+
+    res.send({todo: query});
+}).catch((e) => {
+    res.status(400).send();
+  });
+});
 
 app.listen(port, () => {
   console.log(`Server running on port: ${port}`);
 });
 
-module.exports = {app}
+module.exports = {app};
