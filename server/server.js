@@ -2,6 +2,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const {ObjectID} = require('mongodb');
 const _ = require('lodash');
+const {SHA256} = require('crypto');
 
 var {mongoose} = require('./db/mongoose');
 var {Todo} = require('./models/todo');
@@ -26,6 +27,7 @@ app.post('/todos', (req, res) => {
     console.log("Error adding note", err);
   });
 });
+
 app.get('/todos' , (req, res) => {
   Todo.find().then((todos) => {
     res.send({todos});
@@ -96,6 +98,26 @@ app.patch('/todos/:id', (req, res) => {
 }).catch((e) => {
     res.status(400).send();
   });
+});
+
+app.post('/users', (req, res) => {
+  var body = _.pick(req.body, ['email', 'password']);
+  var user = new User(body);
+
+  user.save().then(() => {
+    console.log("We are here");
+    var tempToken = null;
+    console.log("TempToken:\n" + tempToken);
+    tempToken = user.generateAuthToken();
+    console.log("TempToken:\n" + tempToken);
+    return tempToken
+  }).then((token) => {
+    console.log("valid gen, Token:\n" + token);
+    res.header('x-auth', token).send(user);
+  }).catch((err) => {
+    res.status(400).send(err);
+  });
+
 });
 
 app.listen(port, () => {
