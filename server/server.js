@@ -8,6 +8,7 @@ var {Todo} = require('./models/Todo');
 var {User} = require('./models/User');
 
 var app = express();
+const port = process.env.PORT || 3000;
 
 app.use(bodyParser.json());
 
@@ -51,8 +52,8 @@ app.get('/todos/:id', (req, res) => {
   console.log("Could not fetch", err);
 })
 
-app.listen(3000, () => {
-  console.log("Server Running on: 3000");
+app.listen(port, () => {
+  console.log('Server Running on: 3000 ${port}');
 });
 
 module.exports = {app}
