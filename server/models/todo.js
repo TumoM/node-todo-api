@@ -1,4 +1,4 @@
-var mongoose = require('mongoose')
+var mongoose = require('mongoose');
 
 var todoSchema = new mongoose.Schema({
   text: {
@@ -14,8 +14,12 @@ var todoSchema = new mongoose.Schema({
   completedAt: {
     type: Number,
     default: null
+  },
+  _creator: {
+    type: mongoose.Schema.Types.ObjectId,
+    required: true
   }
 });
-var Todo = mongoose.model("Todo", todoSchema)
+var Todo = mongoose.model("Todo", todoSchema);
 
-module.exports = {Todo}
+module.exports = {Todo};
