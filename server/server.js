@@ -16,7 +16,6 @@ console.log(`USING PORT: ${port} \n ------------ \n DEBUG`);
 app.use(bodyParser.json());
 
 app.post('/todos', (req, res) => {
-  console.log(req.body.text);
   var todo = new Todo({
     text: req.body.text
   });
@@ -106,14 +105,10 @@ app.post('/users', (req, res) => {
   var user = new User(body);
 
   user.save().then(() => {
-    console.log("We are here");
-    var tempToken = null;
-    console.log("TempToken:\n" + tempToken);
+    var tempToken = null
     tempToken = user.generateAuthToken();
-    console.log("TempToken:\n" + tempToken);
     return tempToken;
   }).then((token) => {
-    console.log("valid gen, Token:\n" + token);
     res.header('x-auth', token).send(user);
   }).catch((err) => {
     res.status(400).send(err);
@@ -125,6 +120,17 @@ app.get("/users/me", authenticate,(req, res) => {
   res.send(req.user);
 });
 
+ app.post("/users/login", (req, res) => {
+   var body = _.pick(req.body, ['email', 'password']);
+
+   User.findByCreds(body.email, body.password).then((user) => {
+     user.generateAuthToken().then((token) => {
+       res.header('x-auth', token).send(user);
+     });
+   }).catch((e) => {
+     res.status(400).send();
+   });
+ });
 app.listen(port, () => {
   console.log(`Server running on port: ${port}`);
 });
