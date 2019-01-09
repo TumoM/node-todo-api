@@ -7,6 +7,7 @@ const {SHA256} = require('crypto');
 var {mongoose} = require('./db/mongoose');
 var {Todo} = require('./models/todo');
 var {User} = require('./models/user');
+var {authenticate} = require('./middleware/authenticate');
 
 var app = express();
 const port = (process.env.PORT || 3000);
@@ -110,7 +111,7 @@ app.post('/users', (req, res) => {
     console.log("TempToken:\n" + tempToken);
     tempToken = user.generateAuthToken();
     console.log("TempToken:\n" + tempToken);
-    return tempToken
+    return tempToken;
   }).then((token) => {
     console.log("valid gen, Token:\n" + token);
     res.header('x-auth', token).send(user);
@@ -118,6 +119,10 @@ app.post('/users', (req, res) => {
     res.status(400).send(err);
   });
 
+});
+
+app.get("/users/me", authenticate,(req, res) => {
+  res.send(req.user);
 });
 
 app.listen(port, () => {
